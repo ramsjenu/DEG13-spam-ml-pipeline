@@ -98,6 +98,16 @@ train_model_task = PythonOperator(
  dag=dag,
 )
 
+# Create the Docker image and run the container using BashOperator
+create_image_task = BashOperator(
+    task_id='create_image',
+    bash_command="""
+    docker build -t spam-classifier . && \
+    docker run -p 8001:8001 -d --name spam_classifier_container spam-classifier
+    """,
+    dag=dag,
+    cwd="/opt/airflow/dags/"
+)
 
 # Set task dependencies
-data_preprocessing_task >> train_model_task
+data_preprocessing_task >> train_model_task >> create_image_task
